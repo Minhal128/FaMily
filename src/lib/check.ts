@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { isValidDate, parseAmount, prettyDate } from './format.ts';
+import { bucketise } from './buckets.ts';
+import { greeting, isValidDate, parseAmount, prettyDate, relativeDate } from './format.ts';
 import { summarize } from './summary.ts';
 
 // Money math: run with `npm run check`.
@@ -39,5 +40,75 @@ assert.equal(isValidDate('30/07/2026'), false);
 
 assert.equal(prettyDate('2026-07-30 14:05'), 'Jul 30 · 14:05');
 assert.equal(prettyDate('2026-07-30'), 'Jul 30');
+
+assert.equal(greeting(9), 'Good morning');
+assert.equal(greeting(13), 'Good afternoon');
+assert.equal(greeting(20), 'Good evening');
+assert.equal(greeting(0), 'Good morning', 'midnight is not evening');
+
+const jul30 = new Date(2026, 6, 30);
+assert.equal(relativeDate('2026-07-30 08:00', jul30), 'Today', 'a timestamp still reads as today');
+assert.equal(relativeDate('2026-07-29', jul30), 'Yesterday');
+assert.equal(relativeDate('2026-01-16', jul30), 'Jan 16, 2026');
+assert.equal(
+  relativeDate('2026-06-30', new Date(2026, 6, 1)),
+  'Yesterday',
+  'yesterday across a month boundary'
+);
+
+// Period bucketing behind the Day/Week/Month/Year tabs.
+// Thu 2026-07-30 is the reference "now"; its Monday is 2026-07-27.
+const spend = [
+  { date: '2026-07-30 09:00', amount: 100 },
+  { date: '2026-07-29', amount: 40 },
+  { date: '2026-07-27', amount: 7 },
+  { date: '2026-07-26', amount: 500 }, // Sunday — previous week
+  { date: '2026-06-15', amount: 60 },
+  { date: '2025-03-02', amount: 900 },
+];
+
+const days = bucketise(spend, 'Day', jul30);
+assert.equal(days.length, 7);
+assert.equal(days[6].value, 100, 'today is the last bucket');
+assert.equal(days[5].value, 40, 'yesterday sits one bucket back');
+assert.equal(days[0].label, 'Fri', 'seven days back from Thursday is Friday');
+
+const weeks = bucketise(spend, 'Week', jul30);
+assert.equal(weeks[5].value, 147, 'Mon-Thu of this week: 100 + 40 + 7');
+assert.equal(weeks[4].value, 500, 'Sunday belongs to the previous week');
+
+const monthBuckets = bucketise(spend, 'Month', jul30);
+assert.equal(monthBuckets[5].value, 647, 'July total');
+assert.equal(monthBuckets[4].value, 60, 'June total');
+assert.equal(monthBuckets[5].label, 'Jul');
+
+const years = bucketise(spend, 'Year', jul30);
+assert.equal(years[2].value, 707, '2026 rolls up July and June');
+assert.equal(years[1].value, 900, '2025');
+assert.equal(years[0].value, 0, 'a year with nothing in it still gets a bucket');
+
+assert.equal(
+  bucketise([], 'Month', jul30).length,
+  6,
+  'empty input still returns a full set of buckets'
+);
+
+// Stepping back from a 31-day month used to overflow short months: Jul 30 minus 5
+// became Mar 2, dropping February and charting March twice.
+for (const day of [28, 29, 30, 31]) {
+  for (const period of ['Day', 'Week', 'Month', 'Year'] as const) {
+    const labels = bucketise([], period, new Date(2026, 6, day)).map((b) => b.label);
+    assert.equal(
+      new Set(labels).size,
+      labels.length,
+      `${period} buckets from Jul ${day} must all be distinct, got ${labels.join()}`
+    );
+  }
+}
+assert.deepEqual(
+  bucketise([], 'Month', new Date(2026, 6, 31)).map((b) => b.label),
+  ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+  'six months back from Jan 31-style dates still walks one month at a time'
+);
 
 console.log('ok — all checks passed');

@@ -26,7 +26,13 @@ export default function AddExpenseScreen() {
   };
 
   return (
-    <FormScreen title="Add Expense" submitLabel="Subtract from balance" onSubmit={submit} error={error}>
+    <FormScreen
+      title="Add Expense"
+      subtitle="What you spent on"
+      submitLabel="Subtract from balance"
+      onSubmit={submit}
+      error={error}
+    >
       <Input label="Date & time" value={date} onChangeText={setDate} placeholder="YYYY-MM-DD HH:mm" />
       <Input label="Name" value={name} onChangeText={setName} placeholder="Groceries, Rent…" />
       <Input

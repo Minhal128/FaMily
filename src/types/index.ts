@@ -6,7 +6,7 @@ export type Profile = {
   initials: string;
 };
 
-export type IncomeType = 'Monthly' | 'One-time';
+export type IncomeType = 'Monthly' | 'One-time' | 'Milestone';
 
 export type Income = {
   id: string;

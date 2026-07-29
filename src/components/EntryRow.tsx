@@ -7,7 +7,8 @@ type Props = {
   icon: keyof typeof Feather.glyphMap;
   title: string;
   subtitle: string;
-  meta: string;
+  /** Omit to show the amount alone on the right. */
+  meta?: string;
   amount: string;
   amountColor: string;
   tint: string;
@@ -25,7 +26,7 @@ export default function EntryRow({ icon, title, subtitle, meta, amount, amountCo
       </View>
       <View style={styles.right}>
         <Text style={[styles.amount, { color: amountColor }]}>{amount}</Text>
-        <Text style={styles.meta}>{meta}</Text>
+        {meta ? <Text style={styles.meta}>{meta}</Text> : null}
       </View>
     </View>
   );

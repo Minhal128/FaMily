@@ -1,9 +1,29 @@
 const pad = (n: number) => String(n).padStart(2, '0');
 
+const isoOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
 /** YYYY-MM-DD for today. */
-export const todayISO = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+export const todayISO = () => isoOf(new Date());
+
+/** "Good morning" / "Good afternoon" / "Good evening" for the given hour. */
+export const greeting = (hour = new Date().getHours()) =>
+  hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+/** "Today" / "Yesterday" / "Jan 30, 2026". Accepts dates with or without a time. */
+export const relativeDate = (value: string, now = new Date()) => {
+  const day = value.slice(0, 10);
+  if (day === isoOf(now)) return 'Today';
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (day === isoOf(yesterday)) return 'Yesterday';
+
+  const [y, m, d] = day.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 };
 
 /** YYYY-MM-DD HH:mm for right now. */

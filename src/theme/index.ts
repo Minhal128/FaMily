@@ -3,7 +3,8 @@ export const colors = {
   primaryDark: '#EF2A39',
   gold: '#D4AF37',
   goldLight: '#F5D77A',
-  background: '#F9F9F9',
+  /** Warm off-white — cards are pure white so they lift off it. */
+  background: '#F6F1EF',
   surface: '#FFFFFF',
   text: '#1A1A1A',
   muted: '#8A8A8A',
@@ -14,6 +15,8 @@ export const colors = {
 
 /** Diagonal brand gradient: top-left pink -> bottom-right red. */
 export const brandGradient = [colors.primaryLight, colors.primaryDark] as const;
+/** Flipped direction — used for the back of the balance card so the flip reads as a colour change. */
+export const brandGradientReverse = [colors.primaryDark, colors.primaryLight] as const;
 export const goldGradient = [colors.goldLight, colors.gold] as const;
 
 /** 4px scale: spacing(1) = 4, spacing(4) = 16. */

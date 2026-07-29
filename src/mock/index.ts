@@ -12,13 +12,11 @@ const d = (monthsAgo: number, day: number, time?: string) => {
 };
 
 export const profiles: Profile[] = [
-  { id: 'you', name: 'Aisha', initials: 'A' },
-  { id: 'partner', name: 'Bilal', initials: 'B' },
+  { id: 'you', name: 'Fabiha', initials: 'F' },
+  { id: 'partner', name: 'Minhal', initials: 'M' },
 ];
 
 export const CODE_WORD = 'family';
-
-export const cardNumber = '•••• •••• •••• 4521';
 
 export const incomes: Income[] = [
   { id: 'i1', owner: 'you', source: 'Salary', type: 'Monthly', date: d(3, 1), description: 'Base pay', amount: 185000 },

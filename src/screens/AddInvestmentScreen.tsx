@@ -26,7 +26,13 @@ export default function AddInvestmentScreen() {
   };
 
   return (
-    <FormScreen title="Add Investment" submitLabel="Save investment" onSubmit={submit} error={error}>
+    <FormScreen
+      title="Add Investment"
+      subtitle="What you put away"
+      submitLabel="Save investment"
+      onSubmit={submit}
+      error={error}
+    >
       <Input
         label="Name / type"
         value={name}

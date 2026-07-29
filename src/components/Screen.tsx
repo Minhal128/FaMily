@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '../theme';
 
@@ -14,8 +14,29 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
+/**
+ * Every screen fades and rises on mount, so navigation always lands softly.
+ * ponytail: animating the container itself keeps children's flex/gap untouched —
+ * wrapping them in an extra Animated.View would collapse the layout gaps.
+ */
 export default function Screen({ children, scroll, tabBarSpace = true, style }: Props) {
   const insets = useSafeAreaInsets();
+  const enter = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(enter, {
+      toValue: 1,
+      duration: 380,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [enter]);
+
+  const motion = {
+    opacity: enter,
+    transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }],
+  };
+
   const padding = {
     paddingTop: insets.top + spacing(2),
     paddingBottom: tabBarSpace ? TAB_BAR_SPACE : insets.bottom + spacing(4),
@@ -23,17 +44,21 @@ export default function Screen({ children, scroll, tabBarSpace = true, style }: 
 
   if (scroll) {
     return (
-      <ScrollView
-        style={styles.root}
+      <Animated.ScrollView
+        style={[styles.root, motion]}
         contentContainerStyle={[styles.content, padding, style]}
         showsVerticalScrollIndicator={false}
       >
         {children}
-      </ScrollView>
+      </Animated.ScrollView>
     );
   }
 
-  return <View style={[styles.root, styles.content, padding, style]}>{children}</View>;
+  return (
+    <Animated.View style={[styles.root, styles.content, padding, style, motion]}>
+      {children}
+    </Animated.View>
+  );
 }
 
 const styles = StyleSheet.create({

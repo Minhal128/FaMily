@@ -33,10 +33,16 @@ export default function Segmented<T extends string>({ label, options, value, onC
 
 const styles = StyleSheet.create({
   wrap: { gap: spacing(2) },
-  label: { fontFamily: font.medium, fontSize: 13, color: colors.muted },
+  label: {
+    fontFamily: font.medium,
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: colors.muted,
+  },
   track: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,

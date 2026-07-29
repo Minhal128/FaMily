@@ -1,40 +1,46 @@
-import { Feather } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, font, spacing } from '../theme';
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { colors, font, radius, shadow, spacing } from '../theme';
 import Button from './Button';
+import Header from './Header';
+import Rise from './Rise';
 import Screen from './Screen';
 
 type Props = {
   title: string;
+  subtitle?: string;
   submitLabel: string;
   onSubmit: () => void;
   error?: string;
   children: React.ReactNode;
 };
 
-/** Shared shell for the three "add ..." modals: header, fields, submit. */
-export default function FormScreen({ title, submitLabel, onSubmit, error, children }: Props) {
-  const navigation = useNavigation();
-
+/** Shared shell for the three add-modals: back header, fields on a card, submit. */
+export default function FormScreen({
+  title,
+  subtitle,
+  submitLabel,
+  onSubmit,
+  error,
+  children,
+}: Props) {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.flex}
     >
       <Screen scroll tabBarSpace={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-          <Pressable onPress={navigation.goBack} hitSlop={12} accessibilityLabel="Close">
-            <Feather name="x" size={22} color={colors.muted} />
-          </Pressable>
+        <Header title={title} subtitle={subtitle} />
+
+        <View style={styles.sheet}>
+          {/* Each field springs in just after the one above it. */}
+          {React.Children.map(children, (child, index) => (
+            <Rise index={index}>{child}</Rise>
+          ))}
         </View>
 
-        {children}
-
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Button title={submitLabel} onPress={onSubmit} style={styles.submit} />
+        <Button title={submitLabel} onPress={onSubmit} />
       </Screen>
     </KeyboardAvoidingView>
   );
@@ -42,13 +48,13 @@ export default function FormScreen({ title, submitLabel, onSubmit, error, childr
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing(2),
+  sheet: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing(5),
+    gap: spacing(4),
+    ...shadow,
+    shadowOpacity: 0.07,
   },
-  title: { fontFamily: font.bold, fontSize: 22, color: colors.text },
-  error: { fontFamily: font.regular, fontSize: 12, color: colors.danger },
-  submit: { marginTop: spacing(2) },
+  error: { fontFamily: font.regular, fontSize: 12, color: colors.danger, textAlign: 'center' },
 });
