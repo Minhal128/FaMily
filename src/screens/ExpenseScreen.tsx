@@ -3,12 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BarChart from '../components/BarChart';
 import Card from '../components/Card';
 import Dropdown from '../components/Dropdown';
 import EntryRow from '../components/EntryRow';
 import GradientBackground from '../components/GradientBackground';
 import Header from '../components/Header';
+import LineChart from '../components/LineChart';
 import Rise from '../components/Rise';
 import Screen from '../components/Screen';
 import Segmented from '../components/Segmented';
@@ -119,14 +119,14 @@ export default function ExpenseScreen() {
         </View>
 
         <Card>
-          <BarChart
-            series={[{ label: look.title, color: look.color }]}
-            data={buckets.map((b) => ({ label: b.label, values: [b.value] }))}
+          <LineChart
+            data={buckets}
+            color={look.color}
             height={150}
             activeIndex={active}
             onSelect={(index) => setActive(index === active ? undefined : index)}
           />
-          <Text style={styles.chartHint}>tap a bar for its total</Text>
+          <Text style={styles.chartHint}>tap a point for its total</Text>
         </Card>
 
         <View style={styles.listHeader}>

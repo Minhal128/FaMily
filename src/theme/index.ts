@@ -17,7 +17,9 @@ export const colors = {
 export const brandGradient = [colors.primaryLight, colors.primaryDark] as const;
 /** Flipped direction — used for the back of the balance card so the flip reads as a colour change. */
 export const brandGradientReverse = [colors.primaryDark, colors.primaryLight] as const;
-export const goldGradient = [colors.goldLight, colors.gold] as const;
+/** Deep enough at both stops that white text stays legible. */
+export const goldGradient = ['#EFC85F', '#B8901F'] as const;
+export const successGradient = ['#3DDC97', '#149257'] as const;
 
 /** 4px scale: spacing(1) = 4, spacing(4) = 16. */
 export const spacing = (n: number) => n * 4;

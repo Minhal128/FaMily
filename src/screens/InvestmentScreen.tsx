@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import EntryRow from '../components/EntryRow';
 import GradientBackground from '../components/GradientBackground';
 import Header from '../components/Header';
+import Rise from '../components/Rise';
 import Screen from '../components/Screen';
 import { prettyDate } from '../lib/format';
 import { useApp } from '../state/AppContext';
@@ -21,6 +22,8 @@ export default function InvestmentScreen() {
     [investments]
   );
 
+  const largest = investments.reduce((top, i) => Math.max(top, i.amount), 0);
+
   return (
     <View style={styles.flex}>
       <Screen tabBarSpace={false}>
@@ -28,8 +31,27 @@ export default function InvestmentScreen() {
 
         <View style={styles.summary}>
           <GradientBackground colors={goldGradient} style={styles.summaryInner}>
-            <Text style={styles.summaryLabel}>Total invested</Text>
-            <Text style={styles.summaryAmount}>{money(totalInvestment)}</Text>
+            <View style={styles.summaryTop}>
+              <View>
+                <Text style={styles.summaryLabel}>Total invested</Text>
+                <Text style={styles.summaryAmount}>{money(totalInvestment)}</Text>
+              </View>
+              <View style={styles.summaryBadge}>
+                <Feather name="trending-up" size={22} color={colors.surface} />
+              </View>
+            </View>
+
+            <View style={styles.strip}>
+              <View style={styles.stripItem}>
+                <Text style={styles.stripLabel}>Holdings</Text>
+                <Text style={styles.stripValue}>{sorted.length}</Text>
+              </View>
+              <View style={styles.stripDivider} />
+              <View style={styles.stripItem}>
+                <Text style={styles.stripLabel}>Largest</Text>
+                <Text style={styles.stripValue}>{money(largest)}</Text>
+              </View>
+            </View>
           </GradientBackground>
         </View>
 
@@ -39,16 +61,18 @@ export default function InvestmentScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ gap: spacing(2.5), paddingBottom: insets.bottom + 96 }}
           ListEmptyComponent={<Text style={styles.empty}>No investments yet.</Text>}
-          renderItem={({ item }) => (
-            <EntryRow
-              icon="trending-up"
-              title={item.name}
-              subtitle={item.note}
-              meta={prettyDate(item.date)}
-              amount={money(item.amount)}
-              amountColor={colors.gold}
-              tint="#FBF3DC"
-            />
+          renderItem={({ item, index }) => (
+            <Rise index={index}>
+              <EntryRow
+                icon="trending-up"
+                title={item.name}
+                subtitle={item.note}
+                meta={prettyDate(item.date)}
+                amount={money(item.amount)}
+                amountColor={colors.gold}
+                tint="#FBF3DC"
+              />
+            </Rise>
           )}
         />
       </Screen>
@@ -72,10 +96,30 @@ export default function InvestmentScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
-  summary: { borderRadius: radius.lg, overflow: 'hidden', ...shadow },
-  summaryInner: { padding: spacing(5) },
+  summary: { borderRadius: radius.lg, overflow: 'hidden', ...shadow, shadowOpacity: 0.18 },
+  summaryInner: { padding: spacing(5), gap: spacing(4) },
+  summaryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   summaryLabel: { fontFamily: font.regular, fontSize: 12, color: 'rgba(255,255,255,0.9)' },
-  summaryAmount: { fontFamily: font.bold, fontSize: 28, color: colors.surface, marginTop: 2 },
+  summaryAmount: { fontFamily: font.bold, fontSize: 30, color: colors.surface, marginTop: 2 },
+  summaryBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  strip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderRadius: radius.md,
+    padding: spacing(3.5),
+  },
+  stripItem: { flex: 1, gap: 2 },
+  stripDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.3)' },
+  stripLabel: { fontFamily: font.regular, fontSize: 11, color: 'rgba(255,255,255,0.85)' },
+  stripValue: { fontFamily: font.semibold, fontSize: 16, color: colors.surface },
   empty: { fontFamily: font.regular, fontSize: 13, color: colors.muted, textAlign: 'center' },
   fab: {
     position: 'absolute',

@@ -1,10 +1,23 @@
+import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Card from '../components/Card';
+import GradientBackground from '../components/GradientBackground';
 import Header from '../components/Header';
+import Rise from '../components/Rise';
 import Screen from '../components/Screen';
 import { useApp } from '../state/AppContext';
-import { colors, font, money, signedMoney, spacing } from '../theme';
+import {
+  brandGradient,
+  colors,
+  font,
+  money,
+  radius,
+  shadow,
+  signedMoney,
+  spacing,
+  successGradient,
+} from '../theme';
 
 export default function SavingScreen() {
   const { months, totalEarning, totalExpense } = useApp();
@@ -15,27 +28,41 @@ export default function SavingScreen() {
     <Screen scroll tabBarSpace={false}>
       <Header title="Saving" subtitle="Added money minus expenses" />
 
-      <Card style={styles.total}>
-        <Text style={styles.totalLabel}>Saved overall</Text>
-        <Text style={[styles.totalAmount, { color: saved < 0 ? colors.danger : colors.success }]}>
-          {signedMoney(saved)}
-        </Text>
-        <View style={styles.split}>
-          <View style={styles.splitItem}>
-            <Text style={styles.splitLabel}>Added</Text>
-            <Text style={styles.splitValue}>{money(totalEarning)}</Text>
+      <View style={styles.total}>
+        {/* Green while they're ahead; brand red the moment savings go negative. */}
+        <GradientBackground
+          colors={saved < 0 ? brandGradient : successGradient}
+          style={styles.totalInner}
+        >
+          <View style={styles.totalTop}>
+            <View>
+              <Text style={styles.totalLabel}>Saved overall</Text>
+              <Text style={styles.totalAmount}>{signedMoney(saved)}</Text>
+            </View>
+            <View style={styles.totalBadge}>
+              <Feather name="shield" size={22} color={colors.surface} />
+            </View>
           </View>
-          <View style={styles.divider} />
-          <View style={styles.splitItem}>
-            <Text style={styles.splitLabel}>Spent</Text>
-            <Text style={[styles.splitValue, { color: colors.danger }]}>{money(totalExpense)}</Text>
-          </View>
-        </View>
-        <Text style={styles.note}>Investments are tracked separately and don't reduce savings.</Text>
-      </Card>
 
-      {ordered.map((month) => (
-        <Card key={month.month} style={styles.monthCard}>
+          <View style={styles.split}>
+            <View style={styles.splitItem}>
+              <Text style={styles.splitLabel}>Added</Text>
+              <Text style={styles.splitValue}>{money(totalEarning)}</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.splitItem}>
+              <Text style={styles.splitLabel}>Spent</Text>
+              <Text style={styles.splitValue}>{money(totalExpense)}</Text>
+            </View>
+          </View>
+
+          <Text style={styles.note}>Investments are tracked separately and don't reduce savings.</Text>
+        </GradientBackground>
+      </View>
+
+      {ordered.map((month, index) => (
+        <Rise key={month.month} index={index}>
+        <Card style={styles.monthCard}>
           <View style={styles.monthTop}>
             <Text style={styles.monthLabel}>{month.label}</Text>
             <Text
@@ -58,6 +85,7 @@ export default function SavingScreen() {
             </Text>
           </View>
         </Card>
+        </Rise>
       ))}
 
       {ordered.length === 0 ? <Text style={styles.empty}>Nothing to summarise yet.</Text> : null}
@@ -66,15 +94,31 @@ export default function SavingScreen() {
 }
 
 const styles = StyleSheet.create({
-  total: { gap: spacing(1) },
-  totalLabel: { fontFamily: font.regular, fontSize: 13, color: colors.muted },
-  totalAmount: { fontFamily: font.bold, fontSize: 34 },
-  split: { flexDirection: 'row', alignItems: 'center', marginTop: spacing(3) },
+  total: { borderRadius: radius.lg, overflow: 'hidden', ...shadow, shadowOpacity: 0.18 },
+  totalInner: { padding: spacing(5), gap: spacing(4) },
+  totalTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  totalLabel: { fontFamily: font.regular, fontSize: 12, color: 'rgba(255,255,255,0.9)' },
+  totalAmount: { fontFamily: font.bold, fontSize: 34, color: colors.surface, marginTop: 2 },
+  totalBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  split: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderRadius: radius.md,
+    padding: spacing(3.5),
+  },
   splitItem: { flex: 1, gap: 2 },
-  divider: { width: 1, height: 32, backgroundColor: colors.border },
-  splitLabel: { fontFamily: font.regular, fontSize: 12, color: colors.muted },
-  splitValue: { fontFamily: font.semibold, fontSize: 16, color: colors.text },
-  note: { fontFamily: font.regular, fontSize: 11, color: colors.muted, marginTop: spacing(3) },
+  divider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.3)' },
+  splitLabel: { fontFamily: font.regular, fontSize: 11, color: 'rgba(255,255,255,0.85)' },
+  splitValue: { fontFamily: font.semibold, fontSize: 16, color: colors.surface },
+  note: { fontFamily: font.regular, fontSize: 11, color: 'rgba(255,255,255,0.75)' },
 
   monthCard: { gap: spacing(2) },
   monthTop: {

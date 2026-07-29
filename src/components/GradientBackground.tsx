@@ -16,7 +16,9 @@ export default function GradientBackground({ children, colors = brandGradient, s
       colors={colors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[{ flex: 1 }, style]}
+      // flexGrow, not flex: `flex: 1` forces flexBasis to 0, so inside an auto-height
+      // parent the gradient contributes no height and the card collapses to a sliver.
+      style={[{ flexGrow: 1 }, style]}
     >
       {children}
     </LinearGradient>
