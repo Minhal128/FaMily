@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Card from '../components/Card';
@@ -9,7 +10,14 @@ import { useApp } from '../state/AppContext';
 import { colors, font, money, radius, spacing } from '../theme';
 
 export default function SwitchProfileScreen() {
+  const navigation = useNavigation();
   const { profileId, setProfileId, profile, balance, totalExpense, totalInvestment } = useApp();
+
+  // Home is the confirmation — it re-renders with the other person's numbers.
+  const switchTo = (id: typeof profileId) => {
+    setProfileId(id);
+    navigation.navigate('Home');
+  };
 
   return (
     <Screen scroll>
@@ -25,7 +33,7 @@ export default function SwitchProfileScreen() {
       {profiles.map((p) => {
         const active = p.id === profileId;
         return (
-          <Pressable key={p.id} onPress={() => setProfileId(p.id)}>
+          <Pressable key={p.id} onPress={() => switchTo(p.id)}>
             <Card style={[styles.profileCard, active && styles.profileCardActive]}>
               <View style={[styles.avatar, active && styles.avatarActive]}>
                 <Text style={[styles.avatarText, active && styles.avatarTextActive]}>
