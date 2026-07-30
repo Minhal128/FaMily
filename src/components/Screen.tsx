@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { Animated, Easing, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '../theme';
+import KissBackdrop from './KissBackdrop';
 
 /** Room left below content so the floating tab bar never covers it. */
 export const TAB_BAR_SPACE = 108;
@@ -11,6 +12,8 @@ type Props = {
   scroll?: boolean;
   /** Set false on screens rendered as a modal (no floating tab bar there). */
   tabBarSpace?: boolean;
+  /** Set false where the 💋 wallpaper would compete with the content. */
+  kisses?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -19,7 +22,13 @@ type Props = {
  * ponytail: animating the container itself keeps children's flex/gap untouched —
  * wrapping them in an extra Animated.View would collapse the layout gaps.
  */
-export default function Screen({ children, scroll, tabBarSpace = true, style }: Props) {
+export default function Screen({
+  children,
+  scroll,
+  tabBarSpace = true,
+  kisses = true,
+  style,
+}: Props) {
   const insets = useSafeAreaInsets();
   const enter = useRef(new Animated.Value(0)).current;
 
@@ -42,26 +51,30 @@ export default function Screen({ children, scroll, tabBarSpace = true, style }: 
     paddingBottom: tabBarSpace ? TAB_BAR_SPACE : insets.bottom + spacing(4),
   };
 
-  if (scroll) {
-    return (
-      <Animated.ScrollView
-        style={[styles.root, motion]}
-        contentContainerStyle={[styles.content, padding, style]}
-        showsVerticalScrollIndicator={false}
-      >
-        {children}
-      </Animated.ScrollView>
-    );
-  }
-
+  // The backdrop is a sibling, not a parent: the scroller stays transparent so the
+  // kisses hold still while content scrolls over them.
   return (
-    <Animated.View style={[styles.root, styles.content, padding, style, motion]}>
-      {children}
-    </Animated.View>
+    <View style={styles.root}>
+      {kisses ? <KissBackdrop /> : null}
+      {scroll ? (
+        <Animated.ScrollView
+          style={[styles.flex, motion]}
+          contentContainerStyle={[styles.content, padding, style]}
+          showsVerticalScrollIndicator={false}
+        >
+          {children}
+        </Animated.ScrollView>
+      ) : (
+        <Animated.View style={[styles.flex, styles.content, padding, style, motion]}>
+          {children}
+        </Animated.View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
+  flex: { flex: 1 },
   content: { paddingHorizontal: spacing(5), gap: spacing(4) },
 });

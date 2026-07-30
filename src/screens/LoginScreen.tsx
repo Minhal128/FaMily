@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Button from '../components/Button';
 import GradientBackground from '../components/GradientBackground';
+import KissBackdrop from '../components/KissBackdrop';
 import Wordmark from '../components/Wordmark';
 import { CODE_WORD } from '../mock';
 import { colors, font, radius, spacing } from '../theme';
@@ -39,6 +40,7 @@ export default function LoginScreen() {
   return (
     <GradientBackground>
       <StatusBar style="light" />
+      <KissBackdrop />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.container}

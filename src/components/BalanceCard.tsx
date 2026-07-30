@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import { revealLines } from '../lib/format';
 import { useApp } from '../state/AppContext';
 import { brandGradientReverse, colors, font, money, radius, shadow, spacing } from '../theme';
 import GradientBackground from './GradientBackground';
@@ -17,7 +18,11 @@ export default function BalanceCard() {
   const [shown, setShown] = useState(0);
   const spin = useRef(new Animated.Value(0)).current;
 
-  const message = `${partner.name} loves you, ${profile.name}`;
+  // Two explicit lines rather than one wrapping string: Pacifico's descenders get
+  // clipped when a second line has to fit inside the card's fixed height, which ate
+  // the closing name. Each line is short enough that it can never wrap.
+  const lines = [`${partner.name} loves you,`, profile.name];
+  const message = lines.join(' ');
 
   const flip = () => {
     const next = !flipped;
@@ -119,7 +124,13 @@ export default function BalanceCard() {
         <Animated.View style={[styles.face, styles.back, backStyle]}>
           <GradientBackground colors={brandGradientReverse} style={[styles.inner, styles.backInner]}>
             <Feather name="heart" size={20} color="rgba(255,255,255,0.9)" />
-            <Text style={styles.note}>{message.slice(0, shown)}</Text>
+            <View style={styles.lines}>
+              {revealLines(lines, shown).map((text, i) => (
+                <Text key={lines[i]} style={styles.note}>
+                  {text}
+                </Text>
+              ))}
+            </View>
             <Text style={styles.hint}>tap to flip back</Text>
           </GradientBackground>
         </Animated.View>
@@ -134,7 +145,13 @@ const styles = StyleSheet.create({
   face: { minHeight: 214, borderRadius: radius.lg, overflow: 'hidden', ...shadow, shadowOpacity: 0.18 },
   back: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   inner: { padding: spacing(5), paddingBottom: spacing(11), gap: spacing(3) },
-  backInner: { alignItems: 'center', justifyContent: 'center', gap: spacing(3) },
+  // Less bottom padding than the front: the circles only overlap the very edge.
+  backInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing(3),
+    paddingBottom: spacing(9),
+  },
 
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: spacing(1.5) },
@@ -160,13 +177,14 @@ const styles = StyleSheet.create({
   splitLabel: { fontFamily: font.regular, fontSize: 13, color: 'rgba(255,255,255,0.92)' },
   splitValue: { fontFamily: font.semibold, fontSize: 17, color: colors.surface },
 
+  lines: { alignItems: 'center' },
   note: {
     fontFamily: font.brand,
     fontSize: 24,
-    lineHeight: 36,
+    // No fixed lineHeight — a script face clips against one on Android.
     color: colors.surface,
     textAlign: 'center',
-    paddingHorizontal: spacing(4),
+    paddingHorizontal: spacing(2),
   },
   hint: { fontFamily: font.regular, fontSize: 11, color: 'rgba(255,255,255,0.7)' },
 });

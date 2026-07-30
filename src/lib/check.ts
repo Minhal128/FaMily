@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
+import { analyse } from './analysis.ts';
 import { bucketise } from './buckets.ts';
-import { greeting, isValidDate, parseAmount, prettyDate, relativeDate } from './format.ts';
+import {
+  greeting,
+  isValidDate,
+  parseAmount,
+  prettyDate,
+  relativeDate,
+  revealLines,
+} from './format.ts';
 import { summarize } from './summary.ts';
 
 // Money math: run with `npm run check`.
@@ -110,5 +118,61 @@ assert.deepEqual(
   ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
   'six months back from Jan 31-style dates still walks one month at a time'
 );
+
+// Typewriter across two lines — the closing name must survive to the very last char.
+for (const note of [
+  ['Fabiha loves you,', 'Minhal'],
+  ['Minhal loves you,', 'Fabiha'],
+]) {
+  const full = note.join(' ');
+  assert.deepEqual(revealLines(note, 0), ['', ''], 'nothing shown at zero');
+  assert.deepEqual(revealLines(note, note[0].length), [note[0], ''], 'first line completes alone');
+  assert.deepEqual(
+    revealLines(note, note[0].length + 1),
+    [note[0], ''],
+    'the joining space is consumed, not printed'
+  );
+  assert.deepEqual(
+    revealLines(note, note[0].length + 2),
+    [note[0], note[1][0]],
+    'second line starts on the next character'
+  );
+  assert.deepEqual(
+    revealLines(note, full.length),
+    note,
+    `both lines are whole at the end of "${full}"`
+  );
+  assert.equal(revealLines(note, full.length).join(' '), full, 'reveal rebuilds the message');
+}
+
+// Graph analysis reads whichever months are on the chart.
+const text = (rows: Parameters<typeof analyse>[0]) => analyse(rows).map((i) => i.text).join(' | ');
+
+assert.deepEqual(analyse([]), [], 'no months on screen, nothing to say');
+
+// June 100 earned / 40 spent, July 50 earned / 70 spent / 25 invested.
+const read = analyse(months);
+assert.match(read[0].text, /Kept 27%/, '(60 - 20) saved out of 150 earned');
+assert.equal(read[0].tone, 'good', 'over 20% kept reads as good');
+assert.match(text(months), /Spending rose 75% from Jun 26 to Jul 26/, '40 -> 70');
+assert.match(text(months), /Jul 26 spent more than earned/, 'a negative saving month is called out');
+assert.match(text(months), /Jul 26 was the heaviest month at 70 — 64%/, '70 of 110 spent');
+assert.match(text(months), /25 went into investments, 17% of earnings/);
+assert.match(
+  analyse(months, (n) => `Rs ${n}`)[0].text,
+  /Rs 40 out of Rs 150/,
+  'the caller owns money formatting'
+);
+
+assert.match(text([months[0]]), /Jun 26 saved the most/, 'no deficit means a best month instead');
+assert.equal(
+  text([months[0]]).includes('Spending'),
+  false,
+  'one month alone has nothing to compare against'
+);
+
+// A month with no earnings must not divide by zero.
+const dry = [{ month: '2026-08', label: 'Aug 26', earning: 0, expense: 0, investment: 0, saving: 0 }];
+assert.equal(text(dry), 'Aug 26 saved the most at 0.', 'empty month yields one safe line');
 
 console.log('ok — all checks passed');

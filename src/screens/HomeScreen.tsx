@@ -37,7 +37,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <Screen scroll>
+    <Screen scroll kisses={false}>
       <StatusBar style="dark" />
 
       <View style={styles.header}>

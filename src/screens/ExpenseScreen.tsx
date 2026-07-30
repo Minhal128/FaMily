@@ -120,8 +120,7 @@ export default function ExpenseScreen() {
 
         <Card>
           <LineChart
-            data={buckets}
-            color={look.color}
+            lines={[{ label: look.title, color: look.color, data: buckets }]}
             height={150}
             activeIndex={active}
             onSelect={(index) => setActive(index === active ? undefined : index)}

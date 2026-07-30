@@ -43,6 +43,16 @@ export const prettyDate = (value: string) => {
   return time ? `${label} · ${time}` : label;
 };
 
+/**
+ * Typewriter reveal across pre-split lines: returns each line trimmed to however much
+ * of `shown` reaches it, counting the space that joins them.
+ */
+export const revealLines = (lines: string[], shown: number) =>
+  lines.map((line, i) => {
+    const before = lines.slice(0, i).reduce((count, prev) => count + prev.length + 1, 0);
+    return line.slice(0, Math.max(0, shown - before));
+  });
+
 /** Returns a positive number, or null when the input isn't usable. */
 export const parseAmount = (input: string) => {
   const value = Number(input.replace(/[^0-9.]/g, ''));

@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Easing, StyleSheet } from 'react-native';
 import GradientBackground from '../components/GradientBackground';
+import KissBackdrop from '../components/KissBackdrop';
 import Wordmark from '../components/Wordmark';
 
 const { width } = Dimensions.get('window');
@@ -29,6 +30,7 @@ export default function SplashScreen() {
   return (
     <GradientBackground style={styles.center}>
       <StatusBar style="light" />
+      <KissBackdrop />
       <Animated.View
         style={{
           opacity: enter,
