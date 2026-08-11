@@ -1,17 +1,19 @@
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import BalanceCard from '../components/BalanceCard';
+import EntryActionsModal from '../components/EntryActionsModal';
 import EntryRow from '../components/EntryRow';
 import Rise from '../components/Rise';
 import Screen from '../components/Screen';
 import { greeting, relativeDate } from '../lib/format';
+import { buildTransactions, Transaction } from '../lib/transactions';
 import { useApp } from '../state/AppContext';
 import { colors, font, money, radius, shadow, spacing } from '../theme';
 
-const CIRCLE = 64;
+const CIRCLE = 56;
 
 /** `ring` is the pale edge, `color` the icon and the glow beneath it. */
 const ACTIONS = [
@@ -19,22 +21,66 @@ const ACTIONS = [
   { route: 'Expense', label: 'Expense', icon: 'shopping-bag', color: colors.danger, ring: '#FBD5D0' },
   { route: 'Investment', label: 'Invest', icon: 'trending-up', color: colors.gold, ring: '#F2E3B4' },
   { route: 'Saving', label: 'Saving', icon: 'dollar-sign', color: colors.success, ring: '#C4EFD7' },
+  { route: 'Budget', label: 'Budget', icon: 'pie-chart', color: '#3D8B8B', ring: '#D4EDED' },
 ] as const;
+
+const LOOK = {
+  income: { icon: 'arrow-down-left' as const, color: colors.success, tint: '#E7F8EF', route: 'AddMoney' as const },
+  expense: { icon: 'arrow-up-right' as const, color: colors.danger, tint: '#FDECEA', route: 'AddExpense' as const },
+  investment: { icon: 'trending-up' as const, color: colors.gold, tint: '#FBF3DC', route: 'AddInvestment' as const },
+};
+
+function amountLabel(t: Transaction) {
+  if (t.kind === 'investment') return money(t.amount);
+  return `${t.amount > 0 ? '+' : '-'} ${money(t.amount)}`;
+}
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const { profile, incomes, expenses } = useApp();
+  const {
+    profile,
+    incomes,
+    expenses,
+    investments,
+    deleteIncome,
+    deleteExpense,
+    deleteInvestment,
+  } = useApp();
+  const [selected, setSelected] = useState<Transaction | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const transactions = useMemo(
-    () =>
-      [
-        ...incomes.map((i) => ({ id: i.id, name: i.source, date: i.date, amount: i.amount })),
-        ...expenses.map((e) => ({ id: e.id, name: e.name, date: e.date, amount: -e.amount })),
-      ]
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, 6),
-    [incomes, expenses]
+    () => buildTransactions(incomes, expenses, investments).slice(0, 6),
+    [incomes, expenses, investments]
   );
+
+  const close = () => {
+    if (deleting) return;
+    setSelected(null);
+  };
+
+  const onEdit = () => {
+    if (!selected) return;
+    const t = selected;
+    setSelected(null);
+    navigation.navigate(LOOK[t.kind].route, { id: t.id });
+  };
+
+  const onDelete = async () => {
+    if (!selected || deleting) return;
+    const t = selected;
+    setDeleting(true);
+    try {
+      if (t.kind === 'income') await deleteIncome(t.id);
+      else if (t.kind === 'expense') await deleteExpense(t.id);
+      else await deleteInvestment(t.id);
+      setSelected(null);
+    } catch (err) {
+      Alert.alert('Could not delete', (err as Error).message);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <Screen scroll kisses={false}>
@@ -70,23 +116,24 @@ export default function HomeScreen() {
 
       <View style={styles.historyHeader}>
         <Text style={styles.historyTitle}>Transactions History</Text>
-        <Pressable onPress={() => navigation.navigate('Expense')} hitSlop={8}>
+        <Pressable onPress={() => navigation.navigate('Transactions')} hitSlop={8}>
           <Text style={styles.seeAll}>See all</Text>
         </Pressable>
       </View>
 
       <View style={styles.history}>
         {transactions.map((t, index) => {
-          const income = t.amount > 0;
+          const look = LOOK[t.kind];
           return (
-            <Rise key={t.id} index={index}>
+            <Rise key={`${t.kind}-${t.id}`} index={index}>
               <EntryRow
-                icon={income ? 'arrow-down-left' : 'arrow-up-right'}
+                icon={look.icon}
                 title={t.name}
                 subtitle={relativeDate(t.date)}
-                amount={`${income ? '+' : '-'} ${money(t.amount)}`}
-                amountColor={income ? colors.success : colors.danger}
-                tint={income ? '#E7F8EF' : '#FDECEA'}
+                amount={amountLabel(t)}
+                amountColor={look.color}
+                tint={look.tint}
+                onPress={() => setSelected(t)}
               />
             </Rise>
           );
@@ -95,6 +142,15 @@ export default function HomeScreen() {
           <Text style={styles.empty}>No transactions yet.</Text>
         ) : null}
       </View>
+
+      <EntryActionsModal
+        visible={!!selected}
+        title={selected?.name ?? ''}
+        onClose={close}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        deleting={deleting}
+      />
     </Screen>
   );
 }
@@ -129,7 +185,7 @@ function CircleAction({
         accessibilityLabel={action.label}
       >
         <View style={[styles.circle, { borderColor: action.ring, shadowColor: action.color }]}>
-          <Feather name={action.icon} size={23} color={action.color} />
+          <Feather name={action.icon} size={20} color={action.color} />
         </View>
         <Text style={styles.actionLabel}>{action.label}</Text>
       </Pressable>
@@ -170,7 +226,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: -(spacing(4) + CIRCLE / 2),
   },
-  action: { alignItems: 'center', gap: spacing(2), width: 74 },
+  action: { alignItems: 'center', gap: spacing(1.5), flex: 1 },
   circle: {
     width: CIRCLE,
     height: CIRCLE,
@@ -187,7 +243,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     elevation: 10,
   },
-  actionLabel: { fontFamily: font.semibold, fontSize: 11.5, color: colors.text },
+  actionLabel: { fontFamily: font.semibold, fontSize: 10, color: colors.text, textAlign: 'center' },
 
   historyHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   historyTitle: { fontFamily: font.bold, fontSize: 17, color: colors.text },

@@ -5,13 +5,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Card from '../components/Card';
 import Header from '../components/Header';
 import Screen from '../components/Screen';
-import { profiles } from '../mock';
 import { useApp } from '../state/AppContext';
 import { colors, font, money, radius, spacing } from '../theme';
 
 export default function SwitchProfileScreen() {
   const navigation = useNavigation();
-  const { profileId, setProfileId, profile, balance, totalExpense, totalInvestment } = useApp();
+  const { profileId, setProfileId, profile, profiles, balance, totalExpense, totalInvestment } =
+    useApp();
 
   // Home is the confirmation — it re-renders with the other person's numbers.
   const switchTo = (id: typeof profileId) => {

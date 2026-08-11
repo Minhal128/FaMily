@@ -10,6 +10,8 @@ import {
   revealLines,
 } from './format.ts';
 import { summarize } from './summary.ts';
+import { budgetRemaining, canAddBudgetEvent, monthSpend, plannedVsActual } from './budget.ts';
+import { bubbleSortByDateDesc } from './transactions.ts';
 
 // Money math: run with `npm run check`.
 const incomes = [
@@ -174,5 +176,35 @@ assert.equal(
 // A month with no earnings must not divide by zero.
 const dry = [{ month: '2026-08', label: 'Aug 26', earning: 0, expense: 0, investment: 0, saving: 0 }];
 assert.equal(text(dry), 'Aug 26 saved the most at 0.', 'empty month yields one safe line');
+
+assert.deepEqual(
+  bubbleSortByDateDesc([
+    { date: '2026-01-01', id: 'a' },
+    { date: '2026-03-01', id: 'b' },
+    { date: '2026-02-01', id: 'c' },
+  ]).map((x) => x.id),
+  ['b', 'c', 'a'],
+  'bubble sort newest first'
+);
+
+assert.equal(budgetRemaining(1000, [{ amount: 400 }, { amount: 350 }]), 250);
+assert.equal(canAddBudgetEvent(1000, [{ amount: 900 }], 100), true);
+assert.equal(canAddBudgetEvent(1000, [{ amount: 900 }], 101), false, 'no negative remaining');
+assert.equal(canAddBudgetEvent(1000, [{ amount: 1000 }], 1), false, 'full budget blocks adds');
+
+assert.equal(
+  monthSpend(
+    [
+      { date: '2026-08-01 10:00', amount: 100 },
+      { date: '2026-07-31', amount: 50 },
+      { date: '2026-08-15', amount: 25 },
+    ],
+    '2026-08'
+  ),
+  125,
+  'month spend sums only that YYYY-MM'
+);
+assert.deepEqual(plannedVsActual(1000, 800), { planned: 1000, actual: 800, delta: 200 });
+assert.deepEqual(plannedVsActual(500, 700), { planned: 500, actual: 700, delta: -200 });
 
 console.log('ok — all checks passed');

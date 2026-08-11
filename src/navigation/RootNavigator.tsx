@@ -3,11 +3,13 @@ import React from 'react';
 import AddExpenseScreen from '../screens/AddExpenseScreen';
 import AddInvestmentScreen from '../screens/AddInvestmentScreen';
 import AddMoneyScreen from '../screens/AddMoneyScreen';
+import BudgetScreen from '../screens/BudgetScreen';
 import ExpenseScreen from '../screens/ExpenseScreen';
 import InvestmentScreen from '../screens/InvestmentScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SavingScreen from '../screens/SavingScreen';
 import SplashScreen from '../screens/SplashScreen';
+import TransactionsScreen from '../screens/TransactionsScreen';
 import TabNavigator from './TabNavigator';
 import { RootStackParamList } from './types';
 
@@ -19,9 +21,11 @@ export default function RootNavigator() {
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Main" component={TabNavigator} />
+      <Stack.Screen name="Transactions" component={TransactionsScreen} />
       <Stack.Screen name="Expense" component={ExpenseScreen} />
       <Stack.Screen name="Investment" component={InvestmentScreen} />
       <Stack.Screen name="Saving" component={SavingScreen} />
+      <Stack.Screen name="Budget" component={BudgetScreen} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
         <Stack.Screen name="AddMoney" component={AddMoneyScreen} />
         <Stack.Screen name="AddExpense" component={AddExpenseScreen} />

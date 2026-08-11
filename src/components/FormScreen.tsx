@@ -12,6 +12,7 @@ type Props = {
   submitLabel: string;
   onSubmit: () => void;
   error?: string;
+  loading?: boolean;
   children: React.ReactNode;
 };
 
@@ -22,6 +23,7 @@ export default function FormScreen({
   submitLabel,
   onSubmit,
   error,
+  loading = false,
   children,
 }: Props) {
   return (
@@ -40,7 +42,7 @@ export default function FormScreen({
         </View>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Button title={submitLabel} onPress={onSubmit} />
+        <Button title={submitLabel} onPress={onSubmit} loading={loading} />
       </Screen>
     </KeyboardAvoidingView>
   );

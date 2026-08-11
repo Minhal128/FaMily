@@ -1,5 +1,13 @@
 import React from 'react';
-import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { brandGradient, colors, font, radius, shadow, spacing } from '../theme';
 import GradientBackground from './GradientBackground';
 
@@ -10,23 +18,44 @@ type Props = {
   onPress: () => void;
   variant?: Variant;
   icon?: React.ReactNode;
+  loading?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
-export default function Button({ title, onPress, variant = 'primary', icon, style }: Props) {
+export default function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  icon,
+  loading = false,
+  style,
+}: Props) {
+  const onDark = variant === 'primary';
   const body = (
     <View style={styles.row}>
-      {icon}
-      <Text style={[styles.label, variant === 'primary' ? styles.labelOnDark : styles.labelOnLight]}>
-        {title}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={onDark ? colors.surface : colors.primaryDark} />
+      ) : (
+        <>
+          {icon}
+          <Text style={[styles.label, onDark ? styles.labelOnDark : styles.labelOnLight]}>
+            {title}
+          </Text>
+        </>
+      )}
     </View>
   );
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.base, pressed && styles.pressed, style]}
+      disabled={loading}
+      style={({ pressed }) => [
+        styles.base,
+        pressed && !loading && styles.pressed,
+        loading && styles.disabled,
+        style,
+      ]}
     >
       {variant === 'primary' ? (
         <GradientBackground colors={brandGradient} style={styles.fill}>
@@ -47,6 +76,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
   },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
+  disabled: { opacity: 0.7 },
   fill: {
     minHeight: spacing(13),
     alignItems: 'center',

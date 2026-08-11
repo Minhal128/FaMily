@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, font, radius, spacing } from '../theme';
 
 type Props = {
@@ -12,11 +12,21 @@ type Props = {
   amount: string;
   amountColor: string;
   tint: string;
+  onPress?: () => void;
 };
 
-export default function EntryRow({ icon, title, subtitle, meta, amount, amountColor, tint }: Props) {
-  return (
-    <View style={styles.row}>
+export default function EntryRow({
+  icon,
+  title,
+  subtitle,
+  meta,
+  amount,
+  amountColor,
+  tint,
+  onPress,
+}: Props) {
+  const body = (
+    <>
       <View style={[styles.icon, { backgroundColor: tint }]}>
         <Feather name={icon} size={17} color={amountColor} />
       </View>
@@ -28,8 +38,21 @@ export default function EntryRow({ icon, title, subtitle, meta, amount, amountCo
         <Text style={[styles.amount, { color: amountColor }]}>{amount}</Text>
         {meta ? <Text style={styles.meta}>{meta}</Text> : null}
       </View>
-    </View>
+    </>
   );
+
+  if (onPress) {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+      >
+        {body}
+      </Pressable>
+    );
+  }
+
+  return <View style={styles.row}>{body}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -43,6 +66,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  pressed: { opacity: 0.85 },
   icon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   text: { flex: 1 },
   title: { fontFamily: font.semibold, fontSize: 14, color: colors.text },

@@ -2,12 +2,14 @@ export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
   Main: undefined;
-  AddMoney: undefined;
+  Transactions: undefined;
+  AddMoney: { id?: string } | undefined;
   Expense: undefined;
-  AddExpense: undefined;
+  AddExpense: { id?: string } | undefined;
   Saving: undefined;
+  Budget: undefined;
   Investment: undefined;
-  AddInvestment: undefined;
+  AddInvestment: { id?: string } | undefined;
 };
 
 export type TabParamList = {
